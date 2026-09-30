@@ -1,35 +1,18 @@
 package com.alpha.customerservice.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+public class LocationCoOrdinates {
 
-@Entity
-public class locationCoOrdinates {
-
-	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
-	private int id;
 	private double latitude;
 	private double longitude;
 
-	public locationCoOrdinates(double latitude, double longitude) {
+	public LocationCoOrdinates(double latitude, double longitude) {
 		super();
 		this.latitude = latitude;
 		this.longitude = longitude;
 	}
 
-	public locationCoOrdinates() {
+	public LocationCoOrdinates() {
 		super();
-	}
-
-	public int getId() {
-		return id;
-	}
-
-	public void setId(int id) {
-		this.id = id;
 	}
 
 	public double getLatitude() {
@@ -47,5 +30,4 @@ public class locationCoOrdinates {
 	public void setLongitude(double longitude) {
 		this.longitude = longitude;
 	}
-
 }

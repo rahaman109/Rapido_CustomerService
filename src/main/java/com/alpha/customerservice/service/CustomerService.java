@@ -1,22 +1,30 @@
 package com.alpha.customerservice.service;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import com.alpha.customerservice.entity.Booking;
 import com.alpha.customerservice.entity.Customer;
 import com.alpha.customerservice.exception.CustomerNotFoundException;
+import com.alpha.customerservice.repository.BookingRepository;
 import com.alpha.customerservice.repository.CustomerServiceRepository;
+import com.alpha.customerservice.requestdto.ConfirmRideRequestDto;
 import com.alpha.customerservice.requestdto.CustomerRequestDto;
-import com.alpha.customerservice.requestdto.CustomerSelectRideDto;
+import com.alpha.customerservice.requestdto.CustomerSelectRideRequestDto;
 import com.alpha.customerservice.requestdto.VehicleFare;
+import com.alpha.customerservice.responsedto.BookingRideResponseDto;
 import com.alpha.customerservice.responsedto.CustomerResponseDto;
 import com.alpha.customerservice.responsedto.ResponseStructure;
+import com.alpha.customerservice.responsedto.RiderFareResponse;
 import com.alpha.customerservice.responsedto.SearchDestionationLocationResponseDto;
 
 @Service
@@ -27,6 +35,12 @@ public class CustomerService {
 
 	@Autowired
 	private RestTemplate restTemplate;
+
+	@Autowired
+	private RedisTemplate<String, Object> redisTemplate;
+
+	@Autowired
+	private BookingRepository bookingRepository;
 
 	public double getFare(VehicleFare vehicleFare) {
 		switch (vehicleFare) {
@@ -114,7 +128,7 @@ public class CustomerService {
 				searchDestionationLocationResponseDtolist);
 	}
 
-	public void selectRide(CustomerSelectRideDto customerSelectRideDto) {
+	public ResponseStructure<RiderFareResponse> selectRide(CustomerSelectRideRequestDto customerSelectRideDto) {
 
 		double sourceLatitude = customerSelectRideDto.getSourceLocation().getLatitude();
 		double sourceLongitude = customerSelectRideDto.getSourceLocation().getLongitude();
@@ -136,8 +150,93 @@ public class CustomerService {
 		double bikefare = distanceInKm * getFare(VehicleFare.BIKE);
 		double autofare = distanceInKm * getFare(VehicleFare.AUTO);
 		double cabfare = distanceInKm * getFare(VehicleFare.CAR);
-		
-		System.out.println( "For bike " +bikefare + " Auto  " + autofare + " car" + cabfare);
 
+		RiderFareResponse riderFareResponse = new RiderFareResponse();
+
+		riderFareResponse.setAutoFare(autofare);
+		riderFareResponse.setBikeFare(bikefare);
+		riderFareResponse.setCarFare(cabfare);
+
+		riderFareResponse.setPickupAddress(customerSelectRideDto.getSourceAddress());
+		riderFareResponse.setPickupLocation(customerSelectRideDto.getSourceLocation());
+		riderFareResponse.setDestinationAddress(customerSelectRideDto.getDestinationAddress());
+		riderFareResponse.setDestinationLocation(customerSelectRideDto.getDestinationLocation());
+
+		// Storing data inside Redis
+		String key = "rideDetails:" + customerSelectRideDto.getCustomerId();
+
+		// And then I return this response to client side
+		redisTemplate.opsForValue().set(key, riderFareResponse);
+
+		return new ResponseStructure<>(HttpStatus.OK.value(), "Selecting Ride SuccessFully Done", riderFareResponse);
+	}
+
+	public ResponseStructure<BookingRideResponseDto> confirmRide(ConfirmRideRequestDto confirmRideRequestDto) {
+
+		Customer customer = customerServiceRepository.findById(confirmRideRequestDto.getCustomerId())
+				.orElseThrow(() -> new CustomerNotFoundException());
+
+		String key = "rideDetails:" + confirmRideRequestDto.getCustomerId();
+
+		RiderFareResponse riderFareResponse = (RiderFareResponse) redisTemplate.opsForValue().get(key);
+
+		if (riderFareResponse == null) {
+			throw new RuntimeException("Ride details not found");
+		}
+
+		double fare = 0;
+
+		if (confirmRideRequestDto.getVehicleType() == VehicleFare.BIKE) {
+
+			fare = riderFareResponse.getBikeFare();
+
+		} else if (confirmRideRequestDto.getVehicleType() == VehicleFare.AUTO) {
+
+			fare = riderFareResponse.getAutoFare();
+
+		} else if (confirmRideRequestDto.getVehicleType() == VehicleFare.CAR) {
+
+			fare = riderFareResponse.getCarFare();
+
+		} else {
+
+			throw new RuntimeException("Invalid Vehicle Type");
+		}
+
+		System.out.println("Customer Name: " + customer.getName());
+		System.out.println("Vehicle Type: " + confirmRideRequestDto.getVehicleType());
+		System.out.println("Fare: " + fare);
+
+		Booking booking = new Booking();
+
+		booking.setCustomerId(customer.getId());
+
+		booking.setPickupLocation(riderFareResponse.getPickupAddress());
+		booking.setDestinationLocation(riderFareResponse.getDestinationAddress());
+		booking.setSourceLatitude(riderFareResponse.getPickupLocation().getLatitude());
+		booking.setSourceLongitude(riderFareResponse.getPickupLocation().getLongitude());
+		booking.setDestinationLatitude(riderFareResponse.getDestinationLocation().getLatitude());
+		booking.setDestinationLongitude(riderFareResponse.getDestinationLocation().getLongitude());
+		booking.setPaymentType("PENDING");
+		booking.setVehicleType(confirmRideRequestDto.getVehicleType());
+		booking.setBookingDate(LocalDate.now().toString());
+		booking.setBookingTime(LocalTime.now().toString());
+		booking.setFare(fare);
+
+		Booking saveBooking = bookingRepository.save(booking);
+
+		// Delete temporary ride details from Redis
+		redisTemplate.delete(key);
+
+		BookingRideResponseDto responseDto = new BookingRideResponseDto();
+
+		responseDto.setCustomerId(saveBooking.getCustomerId());
+		responseDto.setDestinationLatitude(saveBooking.getDestinationLatitude());
+		responseDto.setDestinationLongitude(saveBooking.getDestinationLongitude());
+		responseDto.setSourceLatitude(saveBooking.getSourceLatitude());
+		responseDto.setSourceLongitude(saveBooking.getSourceLongitude());
+		responseDto.setFare(saveBooking.getFare());
+
+		return new ResponseStructure<>(HttpStatus.OK.value(), "Confirm Ride", responseDto);
 	}
 }

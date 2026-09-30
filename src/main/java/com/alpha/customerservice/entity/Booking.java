@@ -4,147 +4,193 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.OneToOne;
+
+import com.alpha.customerservice.requestdto.VehicleFare;
 
 @Entity
 public class Booking {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private int id;
+	@Id
+	@GeneratedValue(strategy = GenerationType.AUTO)
+	private int id;
 
-    private int customerId;
-    @OneToOne
-    private Address pickupLocationId;
-    @OneToOne
-    private Address destinationLocationId;
+	private int customerId;
 
-    private String paymentType;
-    private String vehicleType;
-    private int riderId;
+	private String pickupLocation;
+	private String destinationLocation;
 
-    private String bookingDate;
-    private String bookingTime;
-    private String pickupTime;
-    private String dropTime;
+	private double sourceLatitude;
+	private double sourceLongitude;
 
-    private int fare;
+	private double destinationLatitude;
+	private double destinationLongitude;
 
-    public Booking() {
-        super();
-    }
+	private String paymentType;
 
-    public Booking(int customerId, Address pickupLocationId, Address destinationLocationId,
-            String paymentType, String vehicleType, int riderId,
-            String bookingDate, String bookingTime, String pickupTime,
-            String dropTime, int fare) {
+	private VehicleFare vehicleType;
 
-        this.customerId = customerId;
-        this.pickupLocationId = pickupLocationId;
-        this.destinationLocationId = destinationLocationId;
-        this.paymentType = paymentType;
-        this.vehicleType = vehicleType;
-        this.riderId = riderId;
-        this.bookingDate = bookingDate;
-        this.bookingTime = bookingTime;
-        this.pickupTime = pickupTime;
-        this.dropTime = dropTime;
-        this.fare = fare;
-    }
+	private int riderId;
 
-    public int getId() {
-        return id;
-    }
+	private String bookingDate;
+	private String bookingTime;
+	private String pickupTime;
+	private String dropTime;
 
-    public void setId(int id) {
-        this.id = id;
-    }
+	private double fare;
 
-    public int getCustomerId() {
-        return customerId;
-    }
+	public Booking() {
+		super();
+	}
 
-    public void setCustomerId(int customerId) {
-        this.customerId = customerId;
-    }
+	public Booking(int customerId, String pickupLocation, String destinationLocation, double sourceLatitude,
+			double sourceLongitude, double destinationLatitude, double destinationLongitude, String paymentType,
+			VehicleFare vehicleType, int riderId, String bookingDate, String bookingTime, String pickupTime,
+			String dropTime, double fare) {
 
-    public Address getPickupLocationId() {
-        return pickupLocationId;
-    }
+		super();
 
-    public void setPickupLocationId(Address pickupLocationId) {
-        this.pickupLocationId = pickupLocationId;
-    }
+		this.customerId = customerId;
+		this.pickupLocation = pickupLocation;
+		this.destinationLocation = destinationLocation;
+		this.sourceLatitude = sourceLatitude;
+		this.sourceLongitude = sourceLongitude;
+		this.destinationLatitude = destinationLatitude;
+		this.destinationLongitude = destinationLongitude;
+		this.paymentType = paymentType;
+		this.vehicleType = vehicleType;
+		this.riderId = riderId;
+		this.bookingDate = bookingDate;
+		this.bookingTime = bookingTime;
+		this.pickupTime = pickupTime;
+		this.dropTime = dropTime;
+		this.fare = fare;
+	}
 
-    public Address getDestinationLocationId() {
-        return destinationLocationId;
-    }
+	public int getId() {
+		return id;
+	}
 
-    public void setDestinationLocationId(Address destinationLocationId) {
-        this.destinationLocationId = destinationLocationId;
-    }
+	public void setId(int id) {
+		this.id = id;
+	}
 
-    public String getPaymentType() {
-        return paymentType;
-    }
+	public int getCustomerId() {
+		return customerId;
+	}
 
-    public void setPaymentType(String paymentType) {
-        this.paymentType = paymentType;
-    }
+	public void setCustomerId(int customerId) {
+		this.customerId = customerId;
+	}
 
-    public String getVehicleType() {
-        return vehicleType;
-    }
+	public String getPickupLocation() {
+		return pickupLocation;
+	}
 
-    public void setVehicleType(String vehicleType) {
-        this.vehicleType = vehicleType;
-    }
+	public void setPickupLocation(String pickupLocation) {
+		this.pickupLocation = pickupLocation;
+	}
 
-    public int getRiderId() {
-        return riderId;
-    }
+	public String getDestinationLocation() {
+		return destinationLocation;
+	}
 
-    public void setRiderId(int riderId) {
-        this.riderId = riderId;
-    }
+	public void setDestinationLocation(String destinationLocation) {
+		this.destinationLocation = destinationLocation;
+	}
 
-    public String getBookingDate() {
-        return bookingDate;
-    }
+	public double getSourceLatitude() {
+		return sourceLatitude;
+	}
 
-    public void setBookingDate(String bookingDate) {
-        this.bookingDate = bookingDate;
-    }
+	public void setSourceLatitude(double sourceLatitude) {
+		this.sourceLatitude = sourceLatitude;
+	}
 
-    public String getBookingTime() {
-        return bookingTime;
-    }
+	public double getSourceLongitude() {
+		return sourceLongitude;
+	}
 
-    public void setBookingTime(String bookingTime) {
-        this.bookingTime = bookingTime;
-    }
+	public void setSourceLongitude(double sourceLongitude) {
+		this.sourceLongitude = sourceLongitude;
+	}
 
-    public String getPickupTime() {
-        return pickupTime;
-    }
+	public double getDestinationLatitude() {
+		return destinationLatitude;
+	}
 
-    public void setPickupTime(String pickupTime) {
-        this.pickupTime = pickupTime;
-    }
+	public void setDestinationLatitude(double destinationLatitude) {
+		this.destinationLatitude = destinationLatitude;
+	}
 
-    public String getDropTime() {
-        return dropTime;
-    }
+	public double getDestinationLongitude() {
+		return destinationLongitude;
+	}
 
-    public void setDropTime(String dropTime) {
-        this.dropTime = dropTime;
-    }
+	public void setDestinationLongitude(double destinationLongitude) {
+		this.destinationLongitude = destinationLongitude;
+	}
 
-    public int getFare() {
-        return fare;
-    }
+	public String getPaymentType() {
+		return paymentType;
+	}
 
-    public void setFare(int fare) {
-        this.fare = fare;
-    }
+	public void setPaymentType(String paymentType) {
+		this.paymentType = paymentType;
+	}
+
+	public VehicleFare getVehicleType() {
+		return vehicleType;
+	}
+
+	public void setVehicleType(VehicleFare vehicleType) {
+		this.vehicleType = vehicleType;
+	}
+
+	public int getRiderId() {
+		return riderId;
+	}
+
+	public void setRiderId(int riderId) {
+		this.riderId = riderId;
+	}
+
+	public String getBookingDate() {
+		return bookingDate;
+	}
+
+	public void setBookingDate(String bookingDate) {
+		this.bookingDate = bookingDate;
+	}
+
+	public String getBookingTime() {
+		return bookingTime;
+	}
+
+	public void setBookingTime(String bookingTime) {
+		this.bookingTime = bookingTime;
+	}
+
+	public String getPickupTime() {
+		return pickupTime;
+	}
+
+	public void setPickupTime(String pickupTime) {
+		this.pickupTime = pickupTime;
+	}
+
+	public String getDropTime() {
+		return dropTime;
+	}
+
+	public void setDropTime(String dropTime) {
+		this.dropTime = dropTime;
+	}
+
+	public double getFare() {
+		return fare;
+	}
+
+	public void setFare(double fare) {
+		this.fare = fare;
+	}
 }

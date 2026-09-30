@@ -11,10 +11,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.alpha.customerservice.requestdto.ConfirmRideRequestDto;
 import com.alpha.customerservice.requestdto.CustomerRequestDto;
-import com.alpha.customerservice.requestdto.CustomerSelectRideDto;
+import com.alpha.customerservice.requestdto.CustomerSelectRideRequestDto;
+import com.alpha.customerservice.responsedto.BookingRideResponseDto;
 import com.alpha.customerservice.responsedto.CustomerResponseDto;
 import com.alpha.customerservice.responsedto.ResponseStructure;
+import com.alpha.customerservice.responsedto.RiderFareResponse;
 import com.alpha.customerservice.responsedto.SearchDestionationLocationResponseDto;
 import com.alpha.customerservice.service.CustomerService;
 
@@ -50,8 +53,14 @@ public class CustomerServiceController {
 	
 	
 	@PostMapping("/customer/selectride")
-	public void selectRide(@RequestBody CustomerSelectRideDto customerSelectRideDto)
+	public ResponseStructure<RiderFareResponse> selectRide(@RequestBody CustomerSelectRideRequestDto customerSelectRideDto)
 	{
-		customerService.selectRide(customerSelectRideDto);
+		return customerService.selectRide(customerSelectRideDto);
+	}
+	
+	@PostMapping("/customer/confirmride")
+	public ResponseStructure<BookingRideResponseDto> confirmRide(@RequestBody ConfirmRideRequestDto confirmRideRequestDto)
+	{
+		return  customerService.confirmRide(confirmRideRequestDto);
 	}
 }
