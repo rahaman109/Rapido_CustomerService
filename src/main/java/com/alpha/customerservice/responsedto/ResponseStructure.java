@@ -2,43 +2,41 @@ package com.alpha.customerservice.responsedto;
 
 public class ResponseStructure<T> {
 
-	private int statusCode;
-	private String message;
-	private T data;
+    private int statusCode;
+    private String message;
+    private T data;
 
-	public ResponseStructure(int statusCode, String message, T data) {
-		super();
-		this.statusCode = statusCode;
-		this.message = message;
-		this.data = data;
-	}
+    public ResponseStructure() {
+        super();
+    }
 
-	public ResponseStructure() {
-		super();
-	}
+    public ResponseStructure(int statusCode, String message, T data) {
+        this.statusCode = statusCode;
+        this.message = message;
+        this.data = data;
+    }
 
-	public int getStatusCode() {
-		return statusCode;
-	}
+    public int getStatusCode() {
+        return statusCode;
+    }
 
-	public void setStatusCode(int statusCode) {
-		this.statusCode = statusCode;
-	}
+    public void setStatusCode(int statusCode) {
+        this.statusCode = statusCode;
+    }
 
-	public String getMessage() {
-		return message;
-	}
+    public String getMessage() {
+        return message;
+    }
 
-	public void setMessage(String message) {
-		this.message = message;
-	}
+    public void setMessage(String message) {
+        this.message = message;
+    }
 
-	public T getData() {
-		return data;
-	}
+    public T getData() {
+        return data;
+    }
 
-	public void setData(T data) {
-		this.data = data;
-	}
-
+    public void setData(T data) {
+        this.data = data;
+    }
 }
