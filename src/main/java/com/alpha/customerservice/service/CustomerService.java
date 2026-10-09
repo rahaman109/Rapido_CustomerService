@@ -7,19 +7,23 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import com.alpha.customerservice.entity.Booking;
 import com.alpha.customerservice.entity.Customer;
+import com.alpha.customerservice.entity.LocationCoOrdinates;
 import com.alpha.customerservice.exception.CustomerNotFoundException;
 import com.alpha.customerservice.repository.BookingRepository;
 import com.alpha.customerservice.repository.CustomerServiceRepository;
 import com.alpha.customerservice.requestdto.ConfirmRideRequestDto;
 import com.alpha.customerservice.requestdto.CustomerRequestDto;
 import com.alpha.customerservice.requestdto.CustomerSelectRideRequestDto;
+import com.alpha.customerservice.requestdto.FindNearByRiderRequestDto;
 import com.alpha.customerservice.requestdto.VehicleFare;
 import com.alpha.customerservice.responsedto.BookingRideResponseDto;
 import com.alpha.customerservice.responsedto.CustomerResponseDto;
@@ -184,6 +188,7 @@ public class CustomerService {
 			throw new RuntimeException("Ride details not found");
 		}
 
+		// Calculate fare
 		double fare = 0;
 
 		if (confirmRideRequestDto.getVehicleType() == VehicleFare.BIKE) {
@@ -202,41 +207,131 @@ public class CustomerService {
 
 			throw new RuntimeException("Invalid Vehicle Type");
 		}
-
-		System.out.println("Customer Name: " + customer.getName());
-		System.out.println("Vehicle Type: " + confirmRideRequestDto.getVehicleType());
-		System.out.println("Fare: " + fare);
-
+		
 		Booking booking = new Booking();
 
 		booking.setCustomerId(customer.getId());
 
 		booking.setPickupLocation(riderFareResponse.getPickupAddress());
+
 		booking.setDestinationLocation(riderFareResponse.getDestinationAddress());
+
 		booking.setSourceLatitude(riderFareResponse.getPickupLocation().getLatitude());
+
 		booking.setSourceLongitude(riderFareResponse.getPickupLocation().getLongitude());
+
 		booking.setDestinationLatitude(riderFareResponse.getDestinationLocation().getLatitude());
+
 		booking.setDestinationLongitude(riderFareResponse.getDestinationLocation().getLongitude());
+
 		booking.setPaymentType("PENDING");
+
 		booking.setVehicleType(confirmRideRequestDto.getVehicleType());
+
 		booking.setBookingDate(LocalDate.now().toString());
+
 		booking.setBookingTime(LocalTime.now().toString());
+
 		booking.setFare(fare);
 
+		// Find nearby riders
+		FindNearByRiderRequestDto findNearByRiderRequestDto = new FindNearByRiderRequestDto();
+
+		findNearByRiderRequestDto.setVehicleType(confirmRideRequestDto.getVehicleType().toString());
+
+		LocationCoOrdinates locationCoOrdinates = new LocationCoOrdinates(
+				riderFareResponse.getPickupLocation().getLatitude(),
+				riderFareResponse.getPickupLocation().getLongitude());
+
+		findNearByRiderRequestDto.setLocationCoordinates(locationCoOrdinates);
+
+		ResponseEntity<ResponseStructure> response = restTemplate.postForEntity(
+				"http://localhost:8083/rider/findNearByRiders", findNearByRiderRequestDto, ResponseStructure.class);
+
+		List<Integer> riders = (List<Integer>) response.getBody().getData();
+
+		if (riders == null || riders.isEmpty()) {
+			throw new RuntimeException("No nearby riders available");
+		}
+
+		// Assign first nearby rider
+		int riderId = riders.get(0);
+
+		booking.setRiderId(riderId);
+
+		// Save booking in db
 		Booking saveBooking = bookingRepository.save(booking);
 
-		// Delete temporary ride details from Redis
-		redisTemplate.delete(key);
+		// Store complete booking data in Redis
+		String rideKey = "ride:" + saveBooking.getId();
+
+		redisTemplate.opsForHash().put(rideKey, "bookingId", String.valueOf(saveBooking.getId()));
+
+		redisTemplate.opsForHash().put(rideKey, "customerId", String.valueOf(saveBooking.getCustomerId()));
+
+		redisTemplate.opsForHash().put(rideKey, "pickupLocation", saveBooking.getPickupLocation());
+
+		redisTemplate.opsForHash().put(rideKey, "destinationLocation", saveBooking.getDestinationLocation());
+
+		redisTemplate.opsForHash().put(rideKey, "sourceLatitude", String.valueOf(saveBooking.getSourceLatitude()));
+
+		redisTemplate.opsForHash().put(rideKey, "sourceLongitude", String.valueOf(saveBooking.getSourceLongitude()));
+
+		redisTemplate.opsForHash().put(rideKey, "destinationLatitude",
+				String.valueOf(saveBooking.getDestinationLatitude()));
+
+		redisTemplate.opsForHash().put(rideKey, "destinationLongitude",
+				String.valueOf(saveBooking.getDestinationLongitude()));
+
+		redisTemplate.opsForHash().put(rideKey, "paymentType", saveBooking.getPaymentType());
+
+		redisTemplate.opsForHash().put(rideKey, "vehicleType", saveBooking.getVehicleType().toString());
+
+		redisTemplate.opsForHash().put(rideKey, "riderId", String.valueOf(saveBooking.getRiderId()));
+
+		redisTemplate.opsForHash().put(rideKey, "bookingDate", saveBooking.getBookingDate());
+
+		redisTemplate.opsForHash().put(rideKey, "bookingTime", saveBooking.getBookingTime());
+
+		redisTemplate.opsForHash().put(rideKey, "pickupTime", String.valueOf(saveBooking.getPickupTime()));
+
+		redisTemplate.opsForHash().put(rideKey, "dropTime", String.valueOf(saveBooking.getDropTime()));
+
+		redisTemplate.opsForHash().put(rideKey, "fare", String.valueOf(saveBooking.getFare()));
+
+		// Store booking reference under rider
+		String riderKey = "rider:" + riderId + ":requests";
+
+		redisTemplate.opsForHash().put(riderKey, String.valueOf(saveBooking.getId()), rideKey);
 
 		BookingRideResponseDto responseDto = new BookingRideResponseDto();
 
 		responseDto.setCustomerId(saveBooking.getCustomerId());
-		responseDto.setDestinationLatitude(saveBooking.getDestinationLatitude());
-		responseDto.setDestinationLongitude(saveBooking.getDestinationLongitude());
+
+		responseDto.setRiderId(saveBooking.getRiderId());
+
 		responseDto.setSourceLatitude(saveBooking.getSourceLatitude());
+
 		responseDto.setSourceLongitude(saveBooking.getSourceLongitude());
+
+		responseDto.setDestinationLatitude(saveBooking.getDestinationLatitude());
+
+		responseDto.setDestinationLongitude(saveBooking.getDestinationLongitude());
+
 		responseDto.setFare(saveBooking.getFare());
 
 		return new ResponseStructure<>(HttpStatus.OK.value(), "Confirm Ride", responseDto);
+	}
+
+	public ResponseStructure<Boolean> otpValidation(int customerId, String otp) {
+		Customer customer = customerServiceRepository.findById(customerId).orElseThrow(() -> new CustomerNotFoundException());
+		if(!customer.getOtp().equals(otp))
+		{
+			throw new RuntimeException("Otp Invalid");
+		}
+		return new ResponseStructure<>(
+				HttpStatus.OK.value(),
+				"ACCEPTED",
+				true);
 	}
 }

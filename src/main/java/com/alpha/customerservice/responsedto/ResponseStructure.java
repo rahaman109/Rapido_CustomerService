@@ -1,7 +1,9 @@
 package com.alpha.customerservice.responsedto;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class ResponseStructure<T> {
 
+	@JsonProperty("statuscode")
 	private int statusCode;
 	private String message;
 	private T data;

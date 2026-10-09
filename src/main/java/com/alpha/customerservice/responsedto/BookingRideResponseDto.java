@@ -3,6 +3,7 @@ package com.alpha.customerservice.responsedto;
 public class BookingRideResponseDto {
 
 	private int customerId;
+	private int riderId;
 	private double sourceLatitude;
 	private double sourceLongitude;
 	private double destinationLatitude;
@@ -10,7 +11,7 @@ public class BookingRideResponseDto {
 	private double fare;
 
 	public BookingRideResponseDto(int customerId, double sourceLatitude,
-			double sourceLongitude, double destinationLatitude, double destinationLongitude, double fare) {
+			double sourceLongitude, double destinationLatitude, double destinationLongitude, double fare, int riderId) {
 		super();
 		this.customerId = customerId;
 		this.sourceLatitude = sourceLatitude;
@@ -18,6 +19,7 @@ public class BookingRideResponseDto {
 		this.destinationLatitude = destinationLatitude;
 		this.destinationLongitude = destinationLongitude;
 		this.fare = fare;
+		this.riderId = riderId;
 	}
 
 	public BookingRideResponseDto() {
@@ -69,5 +71,13 @@ public class BookingRideResponseDto {
 
 	public void setFare(double fare) {
 		this.fare = fare;
+	}
+
+	public int getRiderId() {
+		return riderId;
+	}
+
+	public void setRiderId(int riderId) {
+		this.riderId = riderId;
 	}
 }

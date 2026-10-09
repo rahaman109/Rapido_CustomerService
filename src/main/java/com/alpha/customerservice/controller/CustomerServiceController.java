@@ -61,6 +61,12 @@ public class CustomerServiceController {
 	@PostMapping("/customer/confirmride")
 	public ResponseStructure<BookingRideResponseDto> confirmRide(@RequestBody ConfirmRideRequestDto confirmRideRequestDto)
 	{
-		return  customerService.confirmRide(confirmRideRequestDto);
+		return customerService.confirmRide(confirmRideRequestDto);
+	}
+	
+	@PostMapping("/customer/otp")
+	public ResponseStructure<Boolean> otpValidation(@RequestParam int customerId, @RequestParam String otp)
+	{
+		return customerService.otpValidation(customerId, otp);
 	}
 }
