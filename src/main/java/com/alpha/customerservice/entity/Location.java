@@ -6,7 +6,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 
 @Entity
-public class locationCoOrdinates {
+public class Location {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
@@ -14,13 +14,13 @@ public class locationCoOrdinates {
 	private double latitude;
 	private double longitude;
 
-	public locationCoOrdinates(double latitude, double longitude) {
+	public Location(double latitude, double longitude) {
 		super();
 		this.latitude = latitude;
 		this.longitude = longitude;
 	}
 
-	public locationCoOrdinates() {
+	public Location() {
 		super();
 	}
 

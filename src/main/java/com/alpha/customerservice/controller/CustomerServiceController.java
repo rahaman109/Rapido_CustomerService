@@ -23,35 +23,34 @@ public class CustomerServiceController {
 
 	@Autowired
 	private CustomerService customerService;
-	
+
 	@PostMapping("/customer/save")
-	public ResponseStructure<CustomerResponseDto> saveCustomer(@RequestBody CustomerRequestDto customerRequestDto)
-	{
+	public ResponseStructure<CustomerResponseDto> saveCustomer(@RequestBody CustomerRequestDto customerRequestDto) {
 		return customerService.saveCustomer(customerRequestDto);
 	}
-	
+
 	@DeleteMapping("/customer/delete")
-	public ResponseStructure<CustomerResponseDto> deleteCustomer(@RequestParam int customerId)
-	{
+	public ResponseStructure<CustomerResponseDto> deleteCustomer(@RequestParam int customerId) {
+
 		return customerService.deleteCustomer(customerId);
 	}
-	
+
 	@GetMapping("/customer/findById/{customerId}")
-	public ResponseStructure<CustomerResponseDto> customerFindById(@PathVariable int customerId)
-	{
+	public ResponseStructure<CustomerResponseDto> customerFindById(@PathVariable int customerId) {
+
 		return customerService.customerFindById(customerId);
 	}
-	
+
 	@GetMapping("/customer/location")
-	public ResponseStructure<List<SearchDestionationLocationResponseDto>> customerGetLocation(@RequestParam String location)
-	{
+	public ResponseStructure<List<SearchDestionationLocationResponseDto>> customerGetLocation(
+			@RequestParam String location) {
+
 		return customerService.customerGetLocation(location);
 	}
-	
-	
+
 	@PostMapping("/customer/selectride")
-	public void selectRide(@RequestBody CustomerSelectRideDto customerSelectRideDto)
-	{
+	public void selectRide(@RequestBody CustomerSelectRideDto customerSelectRideDto) {
+
 		customerService.selectRide(customerSelectRideDto);
 	}
 }
