@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -25,34 +26,35 @@ import com.alpha.customerservice.responsedto.BookingRideResponseDto;
 import com.alpha.customerservice.service.CustomerService;
 
 @RestController
+@RequestMapping("/customer")
 public class CustomerServiceController {
 
 	@Autowired
 	private CustomerService customerService;
 
 	// Save customer
-	@PostMapping("/customer/save")
+	@PostMapping("/save")
 	public ResponseStructure<CustomerResponseDto> saveCustomer(@RequestBody CustomerRequestDto customerRequestDto) {
 
 		return customerService.saveCustomer(customerRequestDto);
 	}
 
 	// Delete customer
-	@DeleteMapping("/customer/delete")
+	@DeleteMapping("/delete")
 	public ResponseStructure<CustomerResponseDto> deleteCustomer(@RequestParam int customerId) {
 
 		return customerService.deleteCustomer(customerId);
 	}
 
 	// Find customer by ID
-	@GetMapping("/customer/findById/{customerId}")
+	@GetMapping("/findById/{customerId}")
 	public ResponseStructure<CustomerResponseDto> customerFindById(@PathVariable int customerId) {
 
 		return customerService.customerFindById(customerId);
 	}
 
 	// Search location
-	@GetMapping("/customer/location")
+	@GetMapping("/location")
 	public ResponseStructure<List<SearchDestionationLocationResponseDto>> customerGetLocation(
 			@RequestParam String location) {
 
@@ -60,21 +62,21 @@ public class CustomerServiceController {
 	}
 
 	// Select ride
-	@PostMapping("/customer/selectride")
+	@PostMapping("/selectride")
 	public ResponseStructure<RiderFareResponse> selectRide(@RequestBody CustomerSelectRideDto customerSelectRideDto) {
 
 		return customerService.selectRide(customerSelectRideDto);
 	}
 
 	// Validate OTP
-	@PostMapping("/customer/otp")
+	@PostMapping("/otp")
 	public ResponseStructure<Boolean> otpValidation(@RequestParam int customerId, @RequestParam String otp) {
 
 		return customerService.otpValidation(customerId, otp);
 	}
 
 	// Confirm ride
-	@PostMapping("/customer/confirmride")
+	@PostMapping("/confirmride")
 	public ResponseStructure<BookingRideResponseDto> confirmRide(
 			@RequestBody ConfirmRideRequestDto confirmRideRequestDto) {
 
@@ -82,7 +84,7 @@ public class CustomerServiceController {
 	}
 	
 	// customer ride history
-	@GetMapping("/customer/ridehistory")
+	@GetMapping("/ridehistory")
 	public ResponseStructure<List<CustomerRideHistoryRepositoryResponseDto>> customerRideHistory(@RequestParam int customerId)
 	{
 		return customerService.customerRideHistory(customerId);
