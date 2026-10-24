@@ -1,9 +1,10 @@
 package com.alpha.customerservice;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.*;
 
-@SpringBootTest
+@SpringBootApplication
 class CustomerserviceApplicationTests {
 
 	@Test

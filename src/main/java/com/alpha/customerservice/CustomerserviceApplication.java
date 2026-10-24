@@ -2,6 +2,7 @@ package com.alpha.customerservice;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -9,33 +10,35 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.web.client.RestTemplate;
 
 @SpringBootApplication
+@EnableCaching
 public class CustomerserviceApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(CustomerserviceApplication.class, args);
-	}
+public static void main(String[] args) {
+    SpringApplication.run(CustomerserviceApplication.class, args);
+}
 
-	@Bean
-	public RestTemplate restTemplate() {
-		return new RestTemplate();
-	}
+@Bean
+public RestTemplate restTemplate() {
+    return new RestTemplate();
+}
 
-	@Bean
-	public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory connectionFactory) {
+@Bean
+public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory connectionFactory) {
 
-		RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
+    RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
 
-		redisTemplate.setConnectionFactory(connectionFactory);
+    redisTemplate.setConnectionFactory(connectionFactory);
 
-		StringRedisSerializer stringSerializer = new StringRedisSerializer();
+    StringRedisSerializer stringSerializer = new StringRedisSerializer();
 
-		redisTemplate.setKeySerializer(stringSerializer);
-		redisTemplate.setHashKeySerializer(stringSerializer);
-		redisTemplate.setValueSerializer(stringSerializer);
-		redisTemplate.setHashValueSerializer(stringSerializer);
+    redisTemplate.setKeySerializer(stringSerializer);
+    redisTemplate.setHashKeySerializer(stringSerializer);
+    redisTemplate.setValueSerializer(stringSerializer);
+    redisTemplate.setHashValueSerializer(stringSerializer);
 
-		redisTemplate.afterPropertiesSet();
+    redisTemplate.afterPropertiesSet();
 
-		return redisTemplate;
-	}
+    return redisTemplate;
+}
+
 }

@@ -10,6 +10,7 @@ import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -122,6 +123,7 @@ public class CustomerService {
 	}
 
 	// Find customer by ID
+	@Cacheable(value = "customers", key = "#customerId", sync = true)
 	public ResponseStructure<CustomerResponseDto> customerFindById(int customerId) {
 
 		Customer customer = customerServiceRepository.findById(customerId)
@@ -262,14 +264,19 @@ public class CustomerService {
 			throw new RuntimeException("Ride details not found. Please select a ride first.");
 		}
 
-		RiderFareResponse fareResponse = objectMapper.readValue(redisData.toString(), RiderFareResponse.class);
+		RiderFareResponse fareResponse;
+
+		try {
+			fareResponse = objectMapper.readValue(redisData.toString(), RiderFareResponse.class);
+		} catch (Exception e) {
+			throw new RuntimeException("Unable to read selected ride details", e);
+		}
 
 		VehicleFare vehicleType = confirmRideRequestDto.getVehicleType();
 
 		double fare;
 
 		switch (vehicleType) {
-
 		case BIKE:
 			fare = fareResponse.getBikeFare();
 			break;
@@ -294,6 +301,7 @@ public class CustomerService {
 		booking.setDestinationLocation(fareResponse.getDestinationAddress());
 
 		booking.setSourceLatitude(fareResponse.getPickupLocation().getLatitude());
+
 		booking.setSourceLongitude(fareResponse.getPickupLocation().getLongitude());
 
 		booking.setDestinationLatitude(fareResponse.getDestinationLocation().getLatitude());
@@ -302,10 +310,8 @@ public class CustomerService {
 
 		booking.setPaymentType("PENDING");
 		booking.setVehicleType(vehicleType.toString());
-
 		booking.setBookingDate(LocalDate.now().toString());
 		booking.setBookingTime(LocalTime.now().toString());
-
 		booking.setFare(fare);
 
 		// Find nearby riders
@@ -322,7 +328,6 @@ public class CustomerService {
 				ResponseStructure.class);
 
 		if (riderResponse.getBody() == null || riderResponse.getBody().getData() == null) {
-
 			throw new RuntimeException("No nearby riders available");
 		}
 
@@ -342,6 +347,7 @@ public class CustomerService {
 
 		booking.setRiderId(riderId);
 
+		// Save booking in PostgreSQL
 		Booking savedBooking = bookingRepository.save(booking);
 
 		// Store booking details in Redis
@@ -391,6 +397,7 @@ public class CustomerService {
 		responseDto.setRiderId(savedBooking.getRiderId());
 
 		responseDto.setSourceLatitude(savedBooking.getSourceLatitude());
+
 		responseDto.setSourceLongitude(savedBooking.getSourceLongitude());
 
 		responseDto.setDestinationLatitude(savedBooking.getDestinationLatitude());
@@ -402,7 +409,7 @@ public class CustomerService {
 		return new ResponseStructure<>(HttpStatus.OK.value(), "Ride confirmed successfully", responseDto);
 	}
 
-	// Helper to handle missing Redis values and literal "null"
+	// this one is helper method to handle misisng redis values and "null"
 	private String getRedisValue(String rideKey, String field) {
 
 		Object value = redisTemplate.opsForHash().get(rideKey, field);
